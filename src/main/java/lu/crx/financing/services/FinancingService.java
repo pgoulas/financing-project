@@ -14,6 +14,7 @@ import lu.crx.financing.entities.Creditor;
 import lu.crx.financing.entities.Invoice;
 import lu.crx.financing.entities.Purchaser;
 import lu.crx.financing.entities.PurchaserFinancingSettings;
+//import lu.crx.financing.repositories.FinancingResultRepository;
 import lu.crx.financing.repositories.InvoiceRepository;
 import lu.crx.financing.repositories.PurchaserRepository;
 import org.springframework.data.util.Pair;
@@ -26,6 +27,7 @@ public class FinancingService {
 
     private final InvoiceRepository invoiceRepository;
     private final PurchaserRepository purchaserRepository;
+//    private final FinancingResultRepository financingResultRepository;
 
     @Transactional
     public void finance() {
@@ -47,9 +49,12 @@ public class FinancingService {
                     .filter(purchaser -> purchaser.getMinimumFinancingTermInDays() >= financingTermInDays)
                     .toList();
 
-            Pair<Purchaser, Integer> selectedPurchaserAndRatePair = selectPurchaser(eligiblePurchasers, creditor,financingTermInDays);
+            if(!eligiblePurchasers.isEmpty()) {
 
-            log.info("Eligible purchasers: " + eligiblePurchasers.size() + " for invoice " + invoice.getId());
+                Pair<Purchaser, Integer> selectedPurchaserAndRatePair = selectPurchaser(eligiblePurchasers, creditor, financingTermInDays);
+
+                log.info("Eligible purchasers: " + eligiblePurchasers.size() + " for invoice " + invoice.getId());
+            }
 
 
             log.info("Debtor: " + invoice.getDebtor() + " ,Creditor: " + invoice.getCreditor() + ",Maturity Date:" + invoice.getMaturityDate() + ",Value:" + invoice.getValueInCents());
