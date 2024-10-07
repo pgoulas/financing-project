@@ -37,27 +37,24 @@ public class FinancingService {
         List<Invoice> invoices = invoiceRepository.findAll();
         List<Purchaser> purchasers = purchaserRepository.findAll();
         invoices.forEach(invoice -> {
-            if (invoice.getMaturityDate().isAfter(currentDate)) {
+            if(invoice.getMaturityDate().isAfter(currentDate)) {
                 log.info("Maturity date: {} is after the current date {}", invoice.getMaturityDate(), currentDate);
+            } else {
+                log.error("Maturity date: {} for invoice: {} is before current date: {}. Invoice is faulty", invoice.getMaturityDate(), invoice.getId(), currentDate);
             }
             int financingTermInDays = calculateFinancingTerm(invoice.getMaturityDate());
             Creditor creditor = invoice.getCreditor();
             // financing rate
-            List<Purchaser> eligiblePurchasers = purchasers.stream()
-                    .filter(purchaser -> purchaser.getPurchaserFinancingSettings().stream()
-                            .anyMatch(purchaserFinancingSetting -> Objects.equals(purchaserFinancingSetting.getCreditor(), creditor)))
-                    .filter(purchaser -> purchaser.getMinimumFinancingTermInDays() >= financingTermInDays)
-                    .toList();
+            List<Purchaser> eligiblePurchasers = getEligiblePurchasers(purchasers, creditor, financingTermInDays);
 
             if(!eligiblePurchasers.isEmpty()) {
-
                 Pair<Purchaser, Integer> selectedPurchaserAndRatePair = selectPurchaser(eligiblePurchasers, creditor, financingTermInDays);
-
                 log.info("Eligible purchasers: {} for invoice: {}", eligiblePurchasers.size(), invoice.getId());
+            } else {
+                log.info("No eligible purchasers for invoice: {}", invoice.getId());
             }
 
-
-            log.info("Debtor: {}, Creditor: {}, Maturity Date: {}, Value: {}",invoice.getDebtor(), invoice.getCreditor(), invoice.getMaturityDate(), invoice.getValueInCents());
+            log.info("Debtor: {}, Creditor: {}, Maturity Date: {}, Value: {}", invoice.getDebtor(), invoice.getCreditor(), invoice.getMaturityDate(), invoice.getValueInCents());
         });
 
         // TODO This is the financing algorithm that needs to be implemented according to the specification.
@@ -71,6 +68,14 @@ public class FinancingService {
         Period period = Period.between(LocalDate.now(), maturityDate);
         return period.getDays();
 
+    }
+
+    private List<Purchaser> getEligiblePurchasers(List<Purchaser> purchasers, Creditor creditor, int financingTermInDays) {
+        return purchasers.stream()
+                .filter(purchaser -> purchaser.getPurchaserFinancingSettings().stream()
+                        .anyMatch(purchaserFinancingSetting -> Objects.equals(purchaserFinancingSetting.getCreditor(), creditor)))
+                .filter(purchaser -> purchaser.getMinimumFinancingTermInDays() >= financingTermInDays)
+                .toList();
     }
 
     private Pair<Purchaser, Integer> selectPurchaser(List<Purchaser> eligiblePurchasers, Creditor creditor, int financingTermInDays) {
