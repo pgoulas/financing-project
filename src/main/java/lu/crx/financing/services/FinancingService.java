@@ -38,7 +38,7 @@ public class FinancingService {
         List<Purchaser> purchasers = purchaserRepository.findAll();
         invoices.forEach(invoice -> {
             if (invoice.getMaturityDate().isAfter(currentDate)) {
-                log.info("Maturity date: " + invoice.getMaturityDate() + " is after the current date" + currentDate);
+                log.info("Maturity date: {} is after the current date {}", invoice.getMaturityDate(), currentDate);
             }
             int financingTermInDays = calculateFinancingTerm(invoice.getMaturityDate());
             Creditor creditor = invoice.getCreditor();
@@ -53,11 +53,11 @@ public class FinancingService {
 
                 Pair<Purchaser, Integer> selectedPurchaserAndRatePair = selectPurchaser(eligiblePurchasers, creditor, financingTermInDays);
 
-                log.info("Eligible purchasers: " + eligiblePurchasers.size() + " for invoice " + invoice.getId());
+                log.info("Eligible purchasers: {} for invoice: {}", eligiblePurchasers.size(), invoice.getId());
             }
 
 
-            log.info("Debtor: " + invoice.getDebtor() + " ,Creditor: " + invoice.getCreditor() + ",Maturity Date:" + invoice.getMaturityDate() + ",Value:" + invoice.getValueInCents());
+            log.info("Debtor: {}, Creditor: {}, Maturity Date: {}, Value: {}",invoice.getDebtor(), invoice.getCreditor(), invoice.getMaturityDate(), invoice.getValueInCents());
         });
 
         // TODO This is the financing algorithm that needs to be implemented according to the specification.
@@ -66,14 +66,14 @@ public class FinancingService {
     }
 
 
-    int calculateFinancingTerm(LocalDate maturityDate) {
+    private int calculateFinancingTerm(LocalDate maturityDate) {
         // Calculate the number of days between the two dates
         Period period = Period.between(LocalDate.now(), maturityDate);
         return period.getDays();
 
     }
 
-    Pair<Purchaser, Integer> selectPurchaser(List<Purchaser> eligiblePurchasers, Creditor creditor, int financingTermInDays) {
+    private Pair<Purchaser, Integer> selectPurchaser(List<Purchaser> eligiblePurchasers, Creditor creditor, int financingTermInDays) {
         //foreach eligible purchaser,we have to calculate the financing rate
         // in order to select the be
 
@@ -82,7 +82,7 @@ public class FinancingService {
                 eligiblePurchasers.forEach(purchaser -> {
                     PurchaserFinancingSettings purchaserFinancingSettings = purchaser.getPurchaserFinancingSettings().stream()
                             .filter(e -> Objects.equals(e.getCreditor(), creditor))
-                            .findFirst().orElseThrow(() ->  new RuntimeException("Creditor" + creditor.getName() + "not exist"));
+                            .findFirst().orElseThrow(() ->  new RuntimeException("Creditor " + creditor.getName() + " doesnt exist"));
                     purchaserLongMap.put(purchaser, purchaserFinancingSettings.getAnnualRateInBps());
                 });
 
