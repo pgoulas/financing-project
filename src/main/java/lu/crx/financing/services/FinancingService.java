@@ -33,8 +33,8 @@ public class FinancingService {
     public void finance() {
         log.info("Financing started");
         //collect the invoices
-        List<Invoice> invoices = invoiceRepository.findAll();
         LocalDate currentDate = LocalDate.now();
+        List<Invoice> invoices = invoiceRepository.findAll();
         List<Purchaser> purchasers = purchaserRepository.findAll();
         invoices.forEach(invoice -> {
             if (invoice.getMaturityDate().isAfter(currentDate)) {
