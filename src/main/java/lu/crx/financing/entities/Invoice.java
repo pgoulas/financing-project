@@ -55,4 +55,11 @@ public class Invoice implements Serializable {
      */
     @Basic(optional = false)
     private long valueInCents;
+
+
+    @Basic(optional = false)
+    private InvoiceStatus invoiceStatus;
+
+    @ManyToOne
+    private Purchaser purchaser;
 }
