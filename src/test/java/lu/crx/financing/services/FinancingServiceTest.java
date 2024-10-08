@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class FinancingServiceTest {
 
     @Autowired
-    private InvoiceRepository invoiceRepository;;
+    private InvoiceRepository invoiceRepository;
 
 
     @BeforeEach
