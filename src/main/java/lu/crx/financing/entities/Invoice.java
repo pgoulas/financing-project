@@ -14,6 +14,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lu.crx.financing.enums.InvoiceStatus;
 
 /**
  * An invoice issued by the {@link Creditor} to the {@link Debtor} for shipped goods.

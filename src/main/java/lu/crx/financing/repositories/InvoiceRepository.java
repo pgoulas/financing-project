@@ -1,10 +1,9 @@
 package lu.crx.financing.repositories;
 
 import lu.crx.financing.entities.Invoice;
-import lu.crx.financing.entities.InvoiceStatus;
+import lu.crx.financing.enums.InvoiceStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

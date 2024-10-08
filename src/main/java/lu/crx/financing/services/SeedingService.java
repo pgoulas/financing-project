@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import lu.crx.financing.entities.Creditor;
 import lu.crx.financing.entities.Debtor;
 import lu.crx.financing.entities.Invoice;
-import lu.crx.financing.entities.InvoiceStatus;
+import lu.crx.financing.enums.InvoiceStatus;
 import lu.crx.financing.entities.Purchaser;
 import lu.crx.financing.entities.PurchaserFinancingSettings;
 import org.springframework.stereotype.Service;
