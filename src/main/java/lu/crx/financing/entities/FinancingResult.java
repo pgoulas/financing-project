@@ -29,10 +29,6 @@ import lombok.ToString;
 public class FinancingResult implements Serializable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id;
-
-    @Basic(optional = false)
     private long invoiceId;
 
     @Basic(optional = false)
