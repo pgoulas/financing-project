@@ -138,7 +138,7 @@ public class SeedingService {
                 .debtor(debtor1)
                 .valueInCents(200000)
                 .maturityDate(LocalDate.now().plusDays(52))
-                .invoiceStatus(InvoiceStatus.PENDING)
+                .invoiceStatus(InvoiceStatus.PENDING.getDescription())
                 .build());
 
         entityManager.persist(Invoice.builder()
@@ -146,7 +146,7 @@ public class SeedingService {
                 .debtor(debtor2)
                 .valueInCents(800000)
                 .maturityDate(LocalDate.now().plusDays(33))
-                .invoiceStatus(InvoiceStatus.PENDING)
+                .invoiceStatus(InvoiceStatus.PENDING.getDescription())
                 .build());
 
         entityManager.persist(Invoice.builder()
@@ -154,7 +154,7 @@ public class SeedingService {
                 .debtor(debtor3)
                 .valueInCents(600000)
                 .maturityDate(LocalDate.now().plusDays(43))
-                .invoiceStatus(InvoiceStatus.PENDING)
+                .invoiceStatus(InvoiceStatus.PENDING.getDescription())
                 .build());
 
         entityManager.persist(Invoice.builder()
@@ -162,7 +162,7 @@ public class SeedingService {
                 .debtor(debtor1)
                 .valueInCents(500000)
                 .maturityDate(LocalDate.now().plusDays(80))
-                .invoiceStatus(InvoiceStatus.PENDING)
+                .invoiceStatus(InvoiceStatus.PENDING.getDescription())
                 .build());
 
         entityManager.persist(Invoice.builder()
@@ -170,7 +170,7 @@ public class SeedingService {
                 .debtor(debtor2)
                 .valueInCents(6000000)
                 .maturityDate(LocalDate.now().plusDays(5))
-                .invoiceStatus(InvoiceStatus.PENDING)
+                .invoiceStatus(InvoiceStatus.PENDING.getDescription())
                 .build());
 
         entityManager.persist(Invoice.builder()
@@ -178,7 +178,7 @@ public class SeedingService {
                 .debtor(debtor3)
                 .valueInCents(500000)
                 .maturityDate(LocalDate.now().plusDays(10))
-                .invoiceStatus(InvoiceStatus.PENDING)
+                .invoiceStatus(InvoiceStatus.PENDING.getDescription())
                 .build());
 
         entityManager.persist(Invoice.builder()
@@ -186,7 +186,7 @@ public class SeedingService {
                 .debtor(debtor1)
                 .valueInCents(800000)
                 .maturityDate(LocalDate.now().plusDays(15))
-                .invoiceStatus(InvoiceStatus.PENDING)
+                .invoiceStatus(InvoiceStatus.PENDING.getDescription())
                 .build());
 
         entityManager.persist(Invoice.builder()
@@ -194,7 +194,7 @@ public class SeedingService {
                 .debtor(debtor2)
                 .valueInCents(9000000)
                 .maturityDate(LocalDate.now().plusDays(30))
-                .invoiceStatus(InvoiceStatus.PENDING)
+                .invoiceStatus(InvoiceStatus.PENDING.getDescription())
                 .build());
 
         entityManager.persist(Invoice.builder()
@@ -202,7 +202,7 @@ public class SeedingService {
                 .debtor(debtor3)
                 .valueInCents(450000)
                 .maturityDate(LocalDate.now().plusDays(32))
-                .invoiceStatus(InvoiceStatus.PENDING)
+                .invoiceStatus(InvoiceStatus.PENDING.getDescription())
                 .build());
 
         entityManager.persist(Invoice.builder()
@@ -210,7 +210,7 @@ public class SeedingService {
                 .debtor(debtor1)
                 .valueInCents(800000)
                 .maturityDate(LocalDate.now().plusDays(11))
-                .invoiceStatus(InvoiceStatus.PENDING)
+                .invoiceStatus(InvoiceStatus.PENDING.getDescription())
                 .build());
 
         entityManager.persist(Invoice.builder()
@@ -218,7 +218,7 @@ public class SeedingService {
                 .debtor(debtor2)
                 .valueInCents(3000000)
                 .maturityDate(LocalDate.now().plusDays(10))
-                .invoiceStatus(InvoiceStatus.PENDING)
+                .invoiceStatus(InvoiceStatus.PENDING.getDescription())
                 .build());
 
         entityManager.persist(Invoice.builder()
@@ -226,7 +226,7 @@ public class SeedingService {
                 .debtor(debtor3)
                 .valueInCents(5000000)
                 .maturityDate(LocalDate.now().plusDays(14))
-                .invoiceStatus(InvoiceStatus.PENDING)
+                .invoiceStatus(InvoiceStatus.PENDING.getDescription())
                 .build());
 
         entityManager.persist(Invoice.builder()
@@ -234,7 +234,7 @@ public class SeedingService {
                 .debtor(debtor1)
                 .valueInCents(9000000)
                 .maturityDate(LocalDate.now().plusDays(23))
-                .invoiceStatus(InvoiceStatus.PENDING)
+                .invoiceStatus(InvoiceStatus.PENDING.getDescription())
                 .build());
 
         entityManager.persist(Invoice.builder()
@@ -242,7 +242,7 @@ public class SeedingService {
                 .debtor(debtor2)
                 .valueInCents(800000)
                 .maturityDate(LocalDate.now().plusDays(18))
-                .invoiceStatus(InvoiceStatus.PENDING)
+                .invoiceStatus(InvoiceStatus.PENDING.getDescription())
                 .build());
 
         entityManager.persist(Invoice.builder()
@@ -250,7 +250,7 @@ public class SeedingService {
                 .debtor(debtor3)
                 .valueInCents(9000000)
                 .maturityDate(LocalDate.now().plusDays(50))
-                .invoiceStatus(InvoiceStatus.PENDING)
+                .invoiceStatus(InvoiceStatus.PENDING.getDescription())
                 .build());
     }
 

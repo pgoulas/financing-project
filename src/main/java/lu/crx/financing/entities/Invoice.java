@@ -59,8 +59,6 @@ public class Invoice implements Serializable {
 
 
     @Basic(optional = false)
-    private InvoiceStatus invoiceStatus;
+    private String invoiceStatus;
 
-    @ManyToOne
-    private Purchaser purchaser;
 }

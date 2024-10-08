@@ -2,9 +2,8 @@ package lu.crx.financing.entities;
 
 import jakarta.persistence.Basic;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -46,6 +45,7 @@ public class FinancingResult implements Serializable {
     @Basic(optional = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
-
+    @ManyToOne
+    private Purchaser purchaser;
 
 }

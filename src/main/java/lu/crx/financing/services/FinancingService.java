@@ -44,7 +44,7 @@ public class FinancingService {
         // Batch process invoices using pagination
         while (true) {
             PageRequest pageRequest = PageRequest.of(page, batchSize);
-            List<Invoice> invoices = invoiceRepository.findAllByInvoiceStatus(InvoiceStatus.PENDING, pageRequest).getContent();
+            List<Invoice> invoices = invoiceRepository.findAllByInvoiceStatus(InvoiceStatus.PENDING.getDescription(), pageRequest).getContent();
 
             if (invoices.isEmpty()) {
                 log.info("No more pending invoices to process");
@@ -88,11 +88,11 @@ public class FinancingService {
                 performFinancing(invoice, selectedPurchaserAndRate);
             } else {
                 log.info("No eligible purchasers for invoice: {}", invoice.getId());
-                invoice.setInvoiceStatus(InvoiceStatus.NON_FINANCED);
+                invoice.setInvoiceStatus(InvoiceStatus.NON_FINANCED.getDescription());
             }
         } else {
             log.error("Maturity date: {} for invoice: {} is before the current date: {}. Marking invoice as canceled.", invoice.getMaturityDate(), invoice.getId(), currentDate);
-            invoice.setInvoiceStatus(InvoiceStatus.CANCELED);
+            invoice.setInvoiceStatus(InvoiceStatus.CANCELED.getDescription());
         }
 
         invoiceRepository.save(invoice);
@@ -106,8 +106,7 @@ public class FinancingService {
         // Calculate the early payment amount
         long earlyPaymentAmount = invoice.getValueInCents() - financingRate;
 
-        invoice.setInvoiceStatus(InvoiceStatus.FINANCED);
-        invoice.setPurchaser(selectedPurchaser);
+        invoice.setInvoiceStatus(InvoiceStatus.FINANCED.getDescription());
 
         FinancingResult financingResult = FinancingResult.builder()
                 .invoiceId(invoice.getId())
@@ -116,6 +115,7 @@ public class FinancingService {
                 .financingDate(LocalDate.now().plusDays(selectedPurchaserAndRate.getFirst().getMinimumFinancingTermInDays()))
                 .createdAt(LocalDateTime.now())
                 .financingRate(financingRate)
+                .purchaser(selectedPurchaser)
                 .build();
 
         financingResultRepository.save(financingResult);
