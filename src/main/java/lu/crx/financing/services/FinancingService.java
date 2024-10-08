@@ -35,6 +35,7 @@ public class FinancingService {
 
     @Transactional
     public void finance() {
+        long start = System.currentTimeMillis();
         log.info("Financing started");
         // Set batch size
         int batchSize = 5;
@@ -58,7 +59,9 @@ public class FinancingService {
             // Increment page for the next batch
             page++;
         }
-        log.info("Financing completed");
+        long end = System.currentTimeMillis();
+        long diff = end - start;
+        log.info("Financing completed in {} millis", diff);
 
     }
 
@@ -112,7 +115,7 @@ public class FinancingService {
                 .invoiceId(invoice.getId())
                 .initialAmount(invoice.getValueInCents())
                 .earlyPaymentAmount(earlyPaymentAmount)
-                .financingDate(LocalDate.now().plusDays(50))  // Adjust this to a meaningful value
+                .financingDate(LocalDate.now().plusDays(selectedPurchaserAndRate.getFirst().getMinimumFinancingTermInDays()))  // Adjust this to a meaningful value
                 .createdAt(LocalDateTime.now())
                 .financingRate(financingRate)
                 .build();
