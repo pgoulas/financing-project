@@ -50,11 +50,7 @@ public class FinancingService {
                 log.info("No more pending invoices to process");
                 break;
             }
-
-            // Retrieve all purchasers (in future, this can also be paginated or optimized if needed)
-            List<Purchaser> purchasers = purchaserRepository.findAll();
-
-            invoices.forEach(invoice -> processInvoice(invoice, purchasers));
+            invoices.forEach(this::processInvoice);
 
             // Increment page for the next batch
             page++;
@@ -65,7 +61,7 @@ public class FinancingService {
 
     }
 
-    private void processInvoice(Invoice invoice, List<Purchaser> purchasers) {
+    private void processInvoice(Invoice invoice) {
         LocalDate currentDate = LocalDate.now();
 
         if (invoice.getMaturityDate().isAfter(currentDate)) {
@@ -76,6 +72,8 @@ public class FinancingService {
 
             // Get the creditor
             Creditor creditor = invoice.getCreditor();
+
+            List<Purchaser> purchasers = purchaserRepository.findPurchasersByCreditor(creditor);
 
             // Get eligible purchasers
             List<Purchaser> eligiblePurchasers = eligibilityCheckUtils.getEligiblePurchasers(purchasers, creditor, financingTermInDays);
@@ -115,7 +113,7 @@ public class FinancingService {
                 .invoiceId(invoice.getId())
                 .initialAmount(invoice.getValueInCents())
                 .earlyPaymentAmount(earlyPaymentAmount)
-                .financingDate(LocalDate.now().plusDays(selectedPurchaserAndRate.getFirst().getMinimumFinancingTermInDays()))  // Adjust this to a meaningful value
+                .financingDate(LocalDate.now().plusDays(selectedPurchaserAndRate.getFirst().getMinimumFinancingTermInDays()))
                 .createdAt(LocalDateTime.now())
                 .financingRate(financingRate)
                 .build();
