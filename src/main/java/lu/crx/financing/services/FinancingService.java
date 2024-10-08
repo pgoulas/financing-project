@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,7 @@ import lu.crx.financing.entities.PurchaserFinancingSettings;
 import lu.crx.financing.repositories.FinancingResultRepository;
 import lu.crx.financing.repositories.InvoiceRepository;
 import lu.crx.financing.repositories.PurchaserRepository;
+import lu.crx.financing.utils.EligibilityCheckUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -36,6 +38,7 @@ public class FinancingService {
     private final InvoiceRepository invoiceRepository;
     private final PurchaserRepository purchaserRepository;
     private final FinancingResultRepository financingResultRepository;
+    private final EligibilityCheckUtils eligibilityCheckUtils;
 
     @Transactional
     public void finance() {
@@ -61,7 +64,7 @@ public class FinancingService {
                 Creditor creditor = invoice.getCreditor();
 
                 // get eligible purchasers
-                List<Purchaser> eligiblePurchasers = getEligiblePurchasers(purchasers, creditor, financingTermInDays);
+                List<Purchaser> eligiblePurchasers = eligibilityCheckUtils.getEligiblePurchasers(purchasers, creditor, financingTermInDays);
                 log.info("Eligible purchasers: {} for invoice: {}", eligiblePurchasers.size(), invoice.getId());
 
                 if (!eligiblePurchasers.isEmpty()) {
@@ -136,63 +139,25 @@ public class FinancingService {
 
     }
 
-    private List<Purchaser> getEligiblePurchasers(List<Purchaser> purchasers, Creditor creditor, int financingTermInDays) {
-        return purchasers.stream()
-                // 1. the `Purchaser` has set up the settings for the invoice's `Creditor` (has a `PurchaserFinancingSettings`
-                //  defined for this `Creditor`);
-                .filter(purchaser -> purchaser.getPurchaserFinancingSettings().stream()
-                        .anyMatch(purchaserFinancingSetting -> Objects.equals(purchaserFinancingSetting.getCreditor(), creditor)))
-                //  2. the financing term of the invoice (duration between the current date and the maturity date of the invoice)
-                //  is greater or equal to the value `Purchaser.minimumFinancingTermInDays` for this `Purchaser`;
-                .filter(purchaser -> purchaser.getMinimumFinancingTermInDays() >= financingTermInDays)
-                // 3. the `Purchaser`'s financing rate for the invoice doesn't exceed the `Creditor.maxFinancingRateInBps` value
-                //for the invoice's `Creditor`.
-                .filter(purchaser -> {
-                    List<PurchaserFinancingSettings> purchaserFinancingSettings = purchaser.getPurchaserFinancingSettings().stream()
-                            .filter(e -> Objects.equals(e.getCreditor(), creditor)).toList();
-                    if(purchaserFinancingSettings.isEmpty()) {
-                        return false;
-                    } else if (purchaserFinancingSettings.size() == 1) {
-                        int financingRate = (purchaserFinancingSettings.get(0).getAnnualRateInBps() * financingTermInDays) /360 ;
-                        return financingRate > 0 && financingRate  <= creditor.getMaxFinancingRateInBps();
-                    } else {
-                        throw new RuntimeException("More than one entries for the same creditor");
-                    }
-
-                })
-                .toList();
-    }
-
     private Pair<Purchaser, Integer> selectPurchaser(List<Purchaser> eligiblePurchasers, Creditor creditor, int financingTermInDays) {
-        //foreach eligible purchaser,we have to calculate the financing rate
-        // in order to select the be
+        // Find the eligible Purchaser with the minimum financing rate for the given Creditor
+        return eligiblePurchasers.stream()
+                .map(purchaser -> {
+                    PurchaserFinancingSettings settings = purchaser.getPurchaserFinancingSettings().stream()
+                            .filter(e -> Objects.equals(e.getCreditor(), creditor))
+                            .findFirst()
+                            .orElseThrow(() -> new IllegalArgumentException("Creditor " + creditor.getName() + " doesn't exist for Purchaser: " + purchaser.getName()));
 
-        // map with purchaser and annual rate for the given creditor
-        Map<Purchaser, Integer> purchaserLongMap = new HashMap<>();
-        eligiblePurchasers.forEach(purchaser -> {
-            PurchaserFinancingSettings purchaserFinancingSettings = purchaser.getPurchaserFinancingSettings().stream()
-                    .filter(e -> Objects.equals(e.getCreditor(), creditor))
-                    .findFirst().orElseThrow(() -> new RuntimeException("Creditor " + creditor.getName() + " doesnt exist"));
-            purchaserLongMap.put(purchaser, purchaserFinancingSettings.getAnnualRateInBps());
-        });
+                    // Calculate the financing rate in basis points (bps)
+                    int financingRateInBps = (settings.getAnnualRateInBps() * financingTermInDays) / 360;
 
-        // calculate the financing rate for its purchaser
-        Map<Purchaser, Integer> purchaserRateMap = new HashMap<>();
-        purchaserLongMap.forEach((purchaser, integer) -> {
-            int bps = (integer * financingTermInDays) / 360;
-            purchaserRateMap.put(purchaser, bps);
-        });
-
-        // Find the minimum value in the map using streams
-        Optional<Map.Entry<Purchaser, Integer>> minEntry = purchaserRateMap.entrySet().stream()
-                .min(Map.Entry.comparingByValue());
-
-        if (minEntry.isEmpty()) {
-            throw new RuntimeException("Invalid action");
-        }
-
-        return Pair.of(minEntry.get().getKey(), minEntry.get().getValue());
-
+                    // Return a Pair of Purchaser and their financing rate
+                    return Pair.of(purchaser, financingRateInBps);
+                })
+                // Find the Purchaser with the minimum financing rate
+                .min(Comparator.comparingInt(Pair::getSecond))
+                .orElseThrow(() -> new IllegalStateException("No eligible Purchaser found for Creditor: " + creditor.getName()));
     }
+
 
 }
