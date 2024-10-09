@@ -4,10 +4,18 @@ import lu.crx.financing.repositories.FinancingResultRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.jdbc.Sql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
+@ActiveProfiles("test")
+@Sql(scripts = "classpath:drop_invoices.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+@TestPropertySource("classpath:application-test.properties")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 class FinancingServiceTest {
 
     @Autowired
@@ -18,7 +26,6 @@ class FinancingServiceTest {
 
     @Test
     void testWithInitialSeedingData() {
-        financingService.finance();
         assertEquals(8, financingResultRepository.findAll().size());
 
         assertEquals(1, financingResultRepository.findAll().get(0).getInvoiceId());
@@ -38,5 +45,10 @@ class FinancingServiceTest {
         assertEquals(8999999, financingResultRepository.findAll().get(5).getEarlyPaymentAmount());
         assertEquals(799999, financingResultRepository.findAll().get(6).getEarlyPaymentAmount());
         assertEquals(8999999, financingResultRepository.findAll().get(7).getEarlyPaymentAmount());
+    }
+
+    @Test
+    void testInvoicesTableIsCleared() {
+        assertEquals(0, financingResultRepository.findAll().size());
     }
 }
