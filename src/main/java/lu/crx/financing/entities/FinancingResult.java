@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+// TODO Fix description below
 /**
  * A creditor is a company that shipped some goods to the {@link Debtor}, issued an {@link Invoice} for the shipment
  * and is waiting for this invoice to be paid by the debtor.
