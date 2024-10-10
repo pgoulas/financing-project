@@ -146,6 +146,8 @@ public class FinancingService {
                 })
                 // Find the Purchaser with the minimum financing rate
                 .min(Comparator.comparingInt(Pair::getSecond))
+                //TODO Wrong exception thrown. Custom exception needed here.
+                //TODO When this is fixed, the corresponding unit test needs fixing.
                 .orElseThrow(() -> new IllegalStateException("No eligible Purchaser found for Creditor: " + creditor.getName()));
     }
 

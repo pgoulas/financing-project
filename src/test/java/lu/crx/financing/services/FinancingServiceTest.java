@@ -16,6 +16,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import java.time.LocalDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -87,5 +88,29 @@ class FinancingServiceTest {
         financingService.finance();
         assertEquals(InvoiceStatus.CANCELED.getDescription(), invoiceRepository.findAll().get(0).getInvoiceStatus());
         assertEquals(InvoiceStatus.CANCELED.getDescription(), invoiceRepository.findAll().get(1).getInvoiceStatus());
+    }
+
+    @Sql(scripts = "classpath:drop_invoices.sql")
+    @Test
+    void testInvoicesWithNoEligiblePurchasers() {
+        entityManager.persist(Invoice.builder()
+                .creditor(creditorRepository.findAll().get(0))
+                .debtor(debtorRepository.findAll().get(1))
+                .valueInCents(800000)
+                .maturityDate(LocalDate.now().plusDays(33))
+                .invoiceStatus(InvoiceStatus.PENDING.getDescription())
+                .build());
+
+        entityManager.persist(Invoice.builder()
+                .creditor(creditorRepository.findAll().get(0))
+                .debtor(debtorRepository.findAll().get(1))
+                .valueInCents(6000000)
+                .maturityDate(LocalDate.now().plusDays(5))
+                .invoiceStatus(InvoiceStatus.PENDING.getDescription())
+                .build());
+
+        financingService.finance();
+        assertEquals(InvoiceStatus.NON_FINANCED.getDescription(), invoiceRepository.findAll().get(0).getInvoiceStatus());
+        assertEquals(InvoiceStatus.NON_FINANCED.getDescription(), invoiceRepository.findAll().get(1).getInvoiceStatus());
     }
 }
