@@ -1,5 +1,11 @@
 package lu.crx.financing.services;
 
+import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
+import lu.crx.financing.entities.Invoice;
+import lu.crx.financing.enums.InvoiceStatus;
+import lu.crx.financing.repositories.CreditorRepository;
+import lu.crx.financing.repositories.DebtorRepository;
 import lu.crx.financing.repositories.FinancingResultRepository;
 import lu.crx.financing.repositories.InvoiceRepository;
 import org.junit.jupiter.api.Test;
@@ -8,13 +14,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
-
+import java.time.LocalDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
 @ActiveProfiles("test")
-@Sql(scripts = "classpath:drop_invoices.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 @TestPropertySource("classpath:application-test.properties")
+@Transactional
 class FinancingServiceTest {
 
     @Autowired
@@ -22,6 +28,18 @@ class FinancingServiceTest {
 
     @Autowired
     private InvoiceRepository invoiceRepository;
+
+    @Autowired
+    private FinancingService financingService;
+
+    @Autowired
+    private EntityManager entityManager;
+
+    @Autowired
+    private DebtorRepository debtorRepository;
+
+    @Autowired
+    private CreditorRepository creditorRepository;
 
     @Test
     void testWithInitialSeedingData() {
@@ -47,8 +65,27 @@ class FinancingServiceTest {
         assertEquals(8999999, financingResultRepository.findAll().get(7).getEarlyPaymentAmount());
     }
 
+    @Sql(scripts = "classpath:drop_invoices.sql")
     @Test
-    void testInvoicesTableIsCleared() {
-        assertEquals(0, invoiceRepository.findAll().size());
+    void testFaultyInvoicesAreCancelled() {
+        entityManager.persist(Invoice.builder()
+                .creditor(creditorRepository.findAll().get(0))
+                .debtor(debtorRepository.findAll().get(0))
+                .valueInCents(200000)
+                .maturityDate(LocalDate.now().minusDays(200))
+                .invoiceStatus(InvoiceStatus.PENDING.getDescription())
+                .build());
+
+        entityManager.persist(Invoice.builder()
+                .creditor(creditorRepository.findAll().get(1))
+                .debtor(debtorRepository.findAll().get(1))
+                .valueInCents(800000)
+                .maturityDate(LocalDate.now().minusDays(200))
+                .invoiceStatus(InvoiceStatus.PENDING.getDescription())
+                .build());
+
+        financingService.finance();
+        assertEquals(InvoiceStatus.CANCELED.getDescription(), invoiceRepository.findAll().get(0).getInvoiceStatus());
+        assertEquals(InvoiceStatus.CANCELED.getDescription(), invoiceRepository.findAll().get(1).getInvoiceStatus());
     }
 }
