@@ -1,10 +1,10 @@
 package lu.crx.financing.services;
 
 import lu.crx.financing.repositories.FinancingResultRepository;
+import lu.crx.financing.repositories.InvoiceRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
@@ -15,18 +15,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @ActiveProfiles("test")
 @Sql(scripts = "classpath:drop_invoices.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 @TestPropertySource("classpath:application-test.properties")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 class FinancingServiceTest {
-
-    @Autowired
-    private FinancingService financingService;
 
     @Autowired
     private FinancingResultRepository financingResultRepository;
 
+    @Autowired
+    private InvoiceRepository invoiceRepository;
+
     @Test
     void testWithInitialSeedingData() {
         assertEquals(8, financingResultRepository.findAll().size());
+        assertEquals(15, invoiceRepository.findAll().size());
 
         assertEquals(1, financingResultRepository.findAll().get(0).getInvoiceId());
         assertEquals(3, financingResultRepository.findAll().get(1).getInvoiceId());
@@ -49,6 +49,6 @@ class FinancingServiceTest {
 
     @Test
     void testInvoicesTableIsCleared() {
-        assertEquals(0, financingResultRepository.findAll().size());
+        assertEquals(0, invoiceRepository.findAll().size());
     }
 }

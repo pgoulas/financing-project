@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS invoice cascade;
+TRUNCATE TABLE invoice;
