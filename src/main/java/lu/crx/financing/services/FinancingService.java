@@ -19,7 +19,9 @@ import lu.crx.financing.repositories.FinancingResultRepository;
 import lu.crx.financing.repositories.InvoiceRepository;
 import lu.crx.financing.repositories.PurchaserRepository;
 import lu.crx.financing.utils.EligibilityCheckUtils;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
@@ -38,13 +40,13 @@ public class FinancingService {
         long start = System.currentTimeMillis();
         log.info("Financing started");
         // Set batch size
-        int batchSize = 5;
+        int batchSize = 10;
         int page = 0;
 
         // Batch process invoices using pagination
         while (true) {
-            PageRequest pageRequest = PageRequest.of(page, batchSize);
-            List<Invoice> invoices = invoiceRepository.findAllByInvoiceStatus(InvoiceStatus.PENDING.getDescription(), pageRequest).getContent();
+            Pageable pageable = PageRequest.of(page, batchSize);
+            List<Invoice> invoices = invoiceRepository.findAllByInvoiceStatus(InvoiceStatus.PENDING.getDescription(), pageable).getContent();
 
             if (invoices.isEmpty()) {
                 log.info("No more pending invoices to process");
@@ -52,8 +54,6 @@ public class FinancingService {
             }
             invoices.forEach(this::processInvoice);
 
-            // Increment page for the next batch
-            page++;
         }
         long end = System.currentTimeMillis();
         long diff = end - start;
@@ -61,41 +61,48 @@ public class FinancingService {
 
     }
 
+
     private void processInvoice(Invoice invoice) {
-        LocalDate currentDate = LocalDate.now();
+        try {
+            LocalDate currentDate = LocalDate.now();
 
-        if (invoice.getMaturityDate().isAfter(currentDate)) {
-            log.info("Processing invoice: {} with maturity date: {}", invoice.getId(), invoice.getMaturityDate());
+            if (invoice.getMaturityDate().isAfter(currentDate)) {
+                log.info("Processing invoice: {} with maturity date: {}", invoice.getId(), invoice.getMaturityDate());
 
-            // Calculate financing term in days
-            int financingTermInDays = calculateFinancingTerm(invoice.getMaturityDate());
+                // Calculate financing term in days
+                int financingTermInDays = calculateFinancingTerm(invoice.getMaturityDate());
 
-            // Get the creditor
-            Creditor creditor = invoice.getCreditor();
+                // Get the creditor
+                Creditor creditor = invoice.getCreditor();
 
-            List<Purchaser> purchasers = purchaserRepository.findPurchasersByCreditor(creditor);
+                List<Purchaser> purchasers = purchaserRepository.findPurchasersByCreditor(creditor);
 
-            // Get eligible purchasers
-            List<Purchaser> eligiblePurchasers = eligibilityCheckUtils.getEligiblePurchasers(purchasers, creditor, financingTermInDays);
-            log.info("Eligible purchasers found: {} for invoice: {}", eligiblePurchasers.size(), invoice.getId());
+                // Get eligible purchasers
+                List<Purchaser> eligiblePurchasers = eligibilityCheckUtils.getEligiblePurchasers(purchasers, creditor, financingTermInDays);
+                log.info("Eligible purchasers found: {} for invoice: {}", eligiblePurchasers.size(), invoice.getId());
 
-            if (!eligiblePurchasers.isEmpty()) {
-                // Select the purchaser with the best financing rate
-                Pair<Purchaser, Integer> selectedPurchaserAndRate = selectPurchaser(eligiblePurchasers, creditor, financingTermInDays);
-                log.info("Selected purchaser: {} with financing rate: {} for invoice: {}", selectedPurchaserAndRate.getFirst(), selectedPurchaserAndRate.getSecond(), invoice.getId());
+                if (!eligiblePurchasers.isEmpty()) {
+                    // Select the purchaser with the best financing rate
+                    Pair<Purchaser, Integer> selectedPurchaserAndRate = selectPurchaser(eligiblePurchasers, creditor, financingTermInDays);
+                    log.info("Selected purchaser: {} with financing rate: {} for invoice: {}", selectedPurchaserAndRate.getFirst(), selectedPurchaserAndRate.getSecond(), invoice.getId());
 
-                // Perform financing and update the invoice status
-                performFinancing(invoice, selectedPurchaserAndRate);
+                    // Perform financing and update the invoice status
+                    performFinancing(invoice, selectedPurchaserAndRate);
+                } else {
+                    log.info("No eligible purchasers for invoice: {}", invoice.getId());
+                    invoice.setInvoiceStatus(InvoiceStatus.NON_FINANCED.getDescription());
+                }
             } else {
-                log.info("No eligible purchasers for invoice: {}", invoice.getId());
-                invoice.setInvoiceStatus(InvoiceStatus.NON_FINANCED.getDescription());
+                log.error("Maturity date: {} for invoice: {} is before the current date: {}. Marking invoice as canceled.", invoice.getMaturityDate(), invoice.getId(), currentDate);
+                invoice.setInvoiceStatus(InvoiceStatus.CANCELED.getDescription());
             }
-        } else {
-            log.error("Maturity date: {} for invoice: {} is before the current date: {}. Marking invoice as canceled.", invoice.getMaturityDate(), invoice.getId(), currentDate);
-            invoice.setInvoiceStatus(InvoiceStatus.CANCELED.getDescription());
-        }
 
-        invoiceRepository.save(invoice);
+            invoiceRepository.save(invoice);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            invoice.setInvoiceStatus(InvoiceStatus.CANCELED.getDescription());
+            invoiceRepository.save(invoice);
+        }
     }
 
 

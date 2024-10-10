@@ -1,20 +1,19 @@
 package lu.crx.financing.entities;
 
-import java.io.Serializable;
-import java.time.LocalDate;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+import java.io.Serializable;
+import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import lu.crx.financing.enums.InvoiceStatus;
 
 /**
  * An invoice issued by the {@link Creditor} to the {@link Debtor} for shipped goods.
