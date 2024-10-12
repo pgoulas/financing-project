@@ -43,26 +43,32 @@ class FinancingServiceTest {
 
     @Test
     void testWithInitialSeedingData() {
-        assertEquals(8, financingResultRepository.findAll().size());
+        assertEquals(11, financingResultRepository.findAll().size());
         assertEquals(15, invoiceRepository.findAll().size());
 
         assertEquals(1, financingResultRepository.findAll().get(0).getInvoiceId());
         assertEquals(3, financingResultRepository.findAll().get(1).getInvoiceId());
         assertEquals(4, financingResultRepository.findAll().get(2).getInvoiceId());
-        assertEquals(11, financingResultRepository.findAll().get(3).getInvoiceId());
-        assertEquals(12, financingResultRepository.findAll().get(4).getInvoiceId());
-        assertEquals(13, financingResultRepository.findAll().get(5).getInvoiceId());
-        assertEquals(14, financingResultRepository.findAll().get(6).getInvoiceId());
-        assertEquals(15, financingResultRepository.findAll().get(7).getInvoiceId());
+        assertEquals(6, financingResultRepository.findAll().get(3).getInvoiceId());
+        assertEquals(7, financingResultRepository.findAll().get(4).getInvoiceId());
+        assertEquals(10, financingResultRepository.findAll().get(5).getInvoiceId());
+        assertEquals(11, financingResultRepository.findAll().get(6).getInvoiceId());
+        assertEquals(12, financingResultRepository.findAll().get(7).getInvoiceId());
+        assertEquals(13, financingResultRepository.findAll().get(8).getInvoiceId());
+        assertEquals(14, financingResultRepository.findAll().get(9).getInvoiceId());
+        assertEquals(15, financingResultRepository.findAll().get(10).getInvoiceId());
 
         assertEquals(199999, financingResultRepository.findAll().get(0).getEarlyPaymentAmount());
         assertEquals(599999, financingResultRepository.findAll().get(1).getEarlyPaymentAmount());
         assertEquals(499999, financingResultRepository.findAll().get(2).getEarlyPaymentAmount());
-        assertEquals(2999999, financingResultRepository.findAll().get(3).getEarlyPaymentAmount());
-        assertEquals(4999999, financingResultRepository.findAll().get(4).getEarlyPaymentAmount());
-        assertEquals(8999999, financingResultRepository.findAll().get(5).getEarlyPaymentAmount());
-        assertEquals(799999, financingResultRepository.findAll().get(6).getEarlyPaymentAmount());
-        assertEquals(8999999, financingResultRepository.findAll().get(7).getEarlyPaymentAmount());
+        assertEquals(499999, financingResultRepository.findAll().get(3).getEarlyPaymentAmount());
+        assertEquals(799998, financingResultRepository.findAll().get(4).getEarlyPaymentAmount());
+        assertEquals(799999, financingResultRepository.findAll().get(5).getEarlyPaymentAmount());
+        assertEquals(2999999, financingResultRepository.findAll().get(6).getEarlyPaymentAmount());
+        assertEquals(4999999, financingResultRepository.findAll().get(7).getEarlyPaymentAmount());
+        assertEquals(8999999, financingResultRepository.findAll().get(8).getEarlyPaymentAmount());
+        assertEquals(799999, financingResultRepository.findAll().get(9).getEarlyPaymentAmount());
+        assertEquals(8999999, financingResultRepository.findAll().get(10).getEarlyPaymentAmount());
     }
 
     @Sql(scripts = "classpath:drop_invoices.sql")

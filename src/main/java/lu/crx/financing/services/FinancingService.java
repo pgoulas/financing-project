@@ -19,7 +19,6 @@ import lu.crx.financing.repositories.FinancingResultRepository;
 import lu.crx.financing.repositories.InvoiceRepository;
 import lu.crx.financing.repositories.PurchaserRepository;
 import lu.crx.financing.utils.EligibilityCheckUtils;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.util.Pair;
@@ -154,7 +153,6 @@ public class FinancingService {
                 // Find the Purchaser with the minimum financing rate
                 .min(Comparator.comparingInt(Pair::getSecond))
                 //TODO Wrong exception thrown. Custom exception needed here.
-                //TODO When this is fixed, the corresponding unit test needs fixing.
                 .orElseThrow(() -> new IllegalStateException("No eligible Purchaser found for Creditor: " + creditor.getName()));
     }
 
