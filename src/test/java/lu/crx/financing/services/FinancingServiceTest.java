@@ -8,7 +8,10 @@ import lu.crx.financing.repositories.CreditorRepository;
 import lu.crx.financing.repositories.DebtorRepository;
 import lu.crx.financing.repositories.FinancingResultRepository;
 import lu.crx.financing.repositories.InvoiceRepository;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -21,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @ActiveProfiles("test")
 @TestPropertySource("classpath:application-test.properties")
 @Transactional
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class FinancingServiceTest {
 
     @Autowired
@@ -42,6 +46,7 @@ class FinancingServiceTest {
     private CreditorRepository creditorRepository;
 
     @Test
+    @Order(1)
     void testValidInvoicesProcessed() {
         assertEquals(11, financingResultRepository.findAll().size());
         assertEquals(15, invoiceRepository.findAll().size());
