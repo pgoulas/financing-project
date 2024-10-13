@@ -62,6 +62,7 @@ public class FinancingService {
 
 
     private void processInvoice(Invoice invoice) {
+        log.info("Starting invoice processing");
         try {
             LocalDate currentDate = LocalDate.now();
 
@@ -97,6 +98,10 @@ public class FinancingService {
             }
 
             invoiceRepository.save(invoice);
+            log.info("Finished invoice processing");
+            //TODO I don't think we should have persistence operations in catch block. Throw a custom exception if something went wrong
+            //TODO and invoice processing couldn't be completed and print stack trace. Persisting cancelled invoices should be part of
+            //TODO business logic
         } catch (Exception e) {
             log.error(e.getMessage());
             invoice.setInvoiceStatus(InvoiceStatus.CANCELED.getDescription());
