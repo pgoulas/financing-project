@@ -42,7 +42,7 @@ class FinancingServiceTest {
     private CreditorRepository creditorRepository;
 
     @Test
-    void testWithInitialSeedingData() {
+    void testValidInvoicesProcessed() {
         assertEquals(11, financingResultRepository.findAll().size());
         assertEquals(15, invoiceRepository.findAll().size());
 
