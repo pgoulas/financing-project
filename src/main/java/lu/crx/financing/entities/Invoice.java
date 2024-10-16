@@ -56,7 +56,9 @@ public class Invoice implements Serializable {
     @Basic(optional = false)
     private long valueInCents;
 
-
+    /**
+     * The invoice status.
+     */
     @Basic(optional = false)
     private String invoiceStatus;
 

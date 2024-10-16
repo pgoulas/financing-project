@@ -3,6 +3,9 @@ package lu.crx.financing.enums;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+/**
+ * InvoiceStatus enumeration contains all the possible statuses an invoice can have.
+ */
 @AllArgsConstructor
 @Getter
 public enum InvoiceStatus {

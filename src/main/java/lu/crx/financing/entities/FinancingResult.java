@@ -14,10 +14,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-// TODO Fix description below
 /**
- * A creditor is a company that shipped some goods to the {@link Debtor}, issued an {@link Invoice} for the shipment
- * and is waiting for this invoice to be paid by the debtor.
+ * A financing result entity contains all the information needed for a invoice with status FINANCED issued
+ * with {@link Purchaser} who will finally finance the invoice.
  */
 @Entity
 @Getter

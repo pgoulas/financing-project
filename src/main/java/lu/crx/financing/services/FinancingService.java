@@ -15,6 +15,7 @@ import lu.crx.financing.entities.Invoice;
 import lu.crx.financing.enums.InvoiceStatus;
 import lu.crx.financing.entities.Purchaser;
 import lu.crx.financing.entities.PurchaserFinancingSettings;
+import lu.crx.financing.exception.InvoiceException;
 import lu.crx.financing.repositories.FinancingResultRepository;
 import lu.crx.financing.repositories.InvoiceRepository;
 import lu.crx.financing.repositories.PurchaserRepository;
@@ -34,6 +35,9 @@ public class FinancingService {
     private final FinancingResultRepository financingResultRepository;
     private final EligibilityCheckUtils eligibilityCheckUtils;
 
+    /**
+     * Method for processing the financing
+     */
     @Transactional
     public void finance() {
         long start = System.currentTimeMillis();
@@ -60,9 +64,13 @@ public class FinancingService {
 
     }
 
-
+    /**
+     * Method that based on the given invoice executes the financing flow
+     *
+     * @param invoice The invoice that is about financing check
+     */
     private void processInvoice(Invoice invoice) {
-        log.info("Starting invoice processing");
+        log.info("Starting invoice processing for invoice: {}", invoice.getId());
         try {
             LocalDate currentDate = LocalDate.now();
 
@@ -75,10 +83,12 @@ public class FinancingService {
                 // Get the creditor
                 Creditor creditor = invoice.getCreditor();
 
+                // Find the purchasers that have settings for the given creditor
                 List<Purchaser> purchasers = purchaserRepository.findPurchasersByCreditor(creditor);
 
-                // Get eligible purchasers
+                // Get eligible purchasers based on the given specs
                 List<Purchaser> eligiblePurchasers = eligibilityCheckUtils.getEligiblePurchasers(purchasers, creditor, financingTermInDays);
+
                 log.info("Eligible purchasers found: {} for invoice: {}", eligiblePurchasers.size(), invoice.getId());
 
                 if (!eligiblePurchasers.isEmpty()) {
@@ -98,18 +108,24 @@ public class FinancingService {
             }
 
             invoiceRepository.save(invoice);
-            log.info("Finished invoice processing");
-            //TODO I don't think we should have persistence operations in catch block. Throw a custom exception if something went wrong
-            //TODO and invoice processing couldn't be completed and print stack trace. Persisting cancelled invoices should be part of
-            //TODO business logic
+            log.info("Finished processing for invoice: {}", invoice.getId());
         } catch (Exception e) {
-            log.error(e.getMessage());
-            invoice.setInvoiceStatus(InvoiceStatus.CANCELED.getDescription());
-            invoiceRepository.save(invoice);
+            if (e instanceof InvoiceException) {
+                log.error(e.getMessage());
+                invoice.setInvoiceStatus(InvoiceStatus.SUSPENDED.getDescription());
+                invoiceRepository.save(invoice);
+            } else {
+                throw e;
+            }
+
         }
     }
 
-
+    /**
+     * Method that performs financing results and updates the DB.
+     * @param invoice The invoice that is about financing check
+     * @param selectedPurchaserAndRate The selected purchaser with his rate
+     */
     private void performFinancing(Invoice invoice, Pair<Purchaser, Integer> selectedPurchaserAndRate) {
         Purchaser selectedPurchaser = selectedPurchaserAndRate.getFirst();
         int financingRate = selectedPurchaserAndRate.getSecond();
@@ -123,7 +139,7 @@ public class FinancingService {
                 .invoiceId(invoice.getId())
                 .initialAmount(invoice.getValueInCents())
                 .earlyPaymentAmount(earlyPaymentAmount)
-                .financingDate(LocalDate.now().plusDays(selectedPurchaserAndRate.getFirst().getMinimumFinancingTermInDays()))
+                .financingDate(LocalDate.now())
                 .createdAt(LocalDateTime.now())
                 .financingRate(financingRate)
                 .purchaser(selectedPurchaser)
@@ -132,7 +148,12 @@ public class FinancingService {
         financingResultRepository.save(financingResult);
     }
 
-
+    /**
+     * Method that calculates the financing term based on the given maturity date
+     *
+     * @param maturityDate The maturity date of the invoice
+     * @return financing term in days
+     */
     private int calculateFinancingTerm(LocalDate maturityDate) {
         // Calculate the number of days between the two dates
         Period period = Period.between(LocalDate.now(), maturityDate);
@@ -140,6 +161,13 @@ public class FinancingService {
 
     }
 
+    /**
+     *  Method that based on the given eligible purchasers calculates the best purchaser with his rate
+     * @param eligiblePurchasers The eligile purchasers
+     * @param creditor The given creditor
+     * @param financingTermInDays The financing term in days
+     * @return The pair of the best purchaser with his financing rate
+     */
     private Pair<Purchaser, Integer> selectPurchaser(List<Purchaser> eligiblePurchasers, Creditor creditor, int financingTermInDays) {
         // Find the eligible Purchaser with the minimum financing rate for the given Creditor
         return eligiblePurchasers.stream()
@@ -147,7 +175,7 @@ public class FinancingService {
                     PurchaserFinancingSettings settings = purchaser.getPurchaserFinancingSettings().stream()
                             .filter(e -> Objects.equals(e.getCreditor(), creditor))
                             .findFirst()
-                            .orElseThrow(() -> new IllegalArgumentException("Creditor " + creditor.getName() + " doesn't exist for Purchaser: " + purchaser.getName()));
+                            .orElseThrow(() -> new InvoiceException("Creditor " + creditor.getName() + " doesn't exist for Purchaser: " + purchaser.getName()));
 
                     // Calculate the financing rate in basis points (bps)
                     int financingRateInBps = (settings.getAnnualRateInBps() * financingTermInDays) / 360;
@@ -157,8 +185,8 @@ public class FinancingService {
                 })
                 // Find the Purchaser with the minimum financing rate
                 .min(Comparator.comparingInt(Pair::getSecond))
-                //TODO Wrong exception thrown. Custom exception needed here.
-                .orElseThrow(() -> new IllegalStateException("No eligible Purchaser found for Creditor: " + creditor.getName()));
+                // we don't expect to throw this exception since the eligible purchasers list given here is not empty
+                .orElseThrow(() -> new InvoiceException("No eligible Purchaser found for Creditor: " + creditor.getName()));
     }
 
 
