@@ -22,12 +22,20 @@ In the event of a business error, the code will throw the appropriate exception,
 propagated, and the process will stop.
 
 
-Performance testing:
-Due to lack of time, i didn't manage to have results from performance testing. However, below i document some steps, i would follow in order to perform the testing.
-1. i would create a script with more data in order to fulfill my db. This script would contain data for already processed invoices, and more purchasers and creditors.
-Also, i would add the invoices for processing.  The number of entries for each table would be according to the results you provide me, in order to have a reference for the time calculation.
-2, after, i would ensure that my app runs in my local machine as expected and i would report the results.
-3. I would try to create through virtual box a vm with the same specs from your example(quad-core x86-64 workstation) and i would try to run the app in there and report the performance results.
-4. Probably the use of VirtualVM or JFR could be a good choice to identify the bottlenecks in the code.
-5. To optimize the performance behavior, i would probably focus on the creation of indexes in the most common table like invoice as well as in JVM options and the connection polling to callibrate
-better the performance behavior.
+Performance Testing:
+Due to time constraints, I was unable to obtain results from the performance testing. However, I have documented the steps I would follow to conduct the testing.
+
+1. Data Generation: I would create a script to populate the database with more data, including entries for already processed invoices,
+ additional purchasers, and creditors. The script would also add invoices for processing. The number of entries for each table would be
+  based on the data you provide, so I could have a reference point for calculating performance.
+
+2. Local Testing: Next, I would ensure that the application runs as expected on my local machine and report the initial performance results.
+
+3. VM Setup: I would then create a virtual machine using VirtualBox, configured with the same specs from your example (quad-core x86-64 workstation).
+ I would run the application in the VM and report the performance results.
+
+4. Bottleneck Identification: Tools such as VisualVM or Java Flight Recorder (JFR) could be used to identify bottlenecks in the code.
+
+5. Performance Optimization: To optimize performance, I would focus on creating indexes on the most commonly accessed tables (like the invoice table).
+ Additionally, I would fine-tune JVM options and connection pooling to improve overall performance.
+
